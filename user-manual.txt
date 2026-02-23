@@ -1,0 +1,267 @@
+Informasi Umum
+
+Nama Aplikasi
+Sistem Prediksi Permintaan Obat Jantung Menggunakan Metode Monte Carlo
+Depo Farmasi Rawat Jalan RSUD Ibnu Sina
+
+Tujuan Utama
+
+Memprediksi kebutuhan obat jantung per periode (bulanan).
+
+Mengurangi risiko kekurangan stok dan kelebihan stok.
+
+Menyediakan evaluasi akurasi prediksi (MAD, MSE, MAPE).
+
+4.2. Role Pengguna
+
+Admin / Petugas Farmasi
+
+Input atau import data permintaan obat harian.
+
+Menjalankan simulasi Monte Carlo.
+
+Melihat hasil error & laporan.
+
+4.3. Alur Penggunaan
+
+Login ke aplikasi
+Masuk melalui halaman login (jika sudah diimplementasikan).
+
+Kelola Data Set
+
+Buka menu Data Set.
+
+Di halaman ini tersedia:
+
+Tabel ringkasan data harian.
+
+Tombol:
+
+Tambah Data → input manual satu hari.
+
+Import Excel → upload file template.
+
+Reset → menghapus semua data (harian, bulanan, simulasi, error, metrik).
+
+Tambah Data Harian (Manual)
+
+Klik Tambah Data.
+
+Isi:
+
+Tanggal permintaan.
+
+Jumlah permintaan untuk 4 jenis obat (boleh 0).
+
+Klik Simpan Data Harian.
+
+Sistem:
+
+Menyimpan ke tb_permintaan_obat_harian.
+
+Mengakumulasi ulang total per bulan ke tb_periode_permintaan.
+
+Import Data dari Excel
+
+Klik Import Excel.
+
+Download template resmi jika belum punya.
+
+Isi template:
+
+Kolom A: tanggal (dd/mm/yyyy).
+
+Kolom B–E: jumlah permintaan masing-masing obat.
+
+Upload file pada form Import.
+
+Opsional: centang “hapus semua data lama sebelum import” jika ingin reset.
+
+Submit.
+
+Sistem:
+
+Menyimpan semua baris ke tb_permintaan_obat_harian.
+
+Mengakumulasi otomatis ke tb_periode_permintaan.
+
+Menjalankan Simulasi Monte Carlo
+
+Buka menu Monte Carlo.
+
+Pilih:
+
+Skenario: 1 / 2 / 3 (logika skenario bisa kamu bedakan di controller jika dibutuhkan).
+
+Obat: pilih salah satu dari 4 obat jantung.
+
+Jumlah simulasi: misal 1000.
+
+Periode prediksi (bulan): misal 1 (prediksi satu bulan ke depan).
+
+Klik Hitung.
+
+Halaman akan menampilkan:
+
+Tabel Monte Carlo (nilai permintaan, frekuensi, probabilitas, kumulatif, range bilangan acak).
+
+Ringkasan Hasil Error: Prediksi vs Data aktual, MAD, MSE, MAPE.
+
+Data distribusi disimpan ke tb_monte_carlo.
+
+Error disimpan ke tb_hasil_error.
+
+Metrik rata-rata per obat & skenario disimpan ke tb_metrik_evaluasi.
+
+Melihat Hasil Error / Rekap
+
+Buka menu Hasil Error.
+
+Pilih:
+
+Obat
+
+Skenario
+
+Klik Tampilkan.
+
+Halaman menampilkan:
+
+Ringkasan MAD, MSE, MAPE, dan kategori akurasi.
+
+Tabel detail error per prediksi (Data aktual, prediksi, AD, SE, APE).
+
+Analisis Komparatif & Laporan (jika diaktifkan)
+
+Menu Analisis:
+
+Perbandingan MAPE antar skenario untuk setiap obat.
+
+Menu Laporan:
+
+Rekap semua metrik evaluasi.
+
+Bisa difilter per obat.
+
+Hasil bisa di-export (kalau kamu tambahkan fungsi export PDF/Excel).
+
+Tentang Kami
+
+Menjelaskan profil aplikasi, fitur, dan alur singkat (halaman yang baru kita buat).
+
+4.4. Requirement Sistem (contoh singkat)
+
+PHP 8.x
+
+Laravel 9/10
+
+MySQL / MariaDB
+
+Ekstensi PHPSpreadsheet (sudah kamu pakai di DataController untuk import & template Excel).
+
+5. Penjelasan Struktur Project & Kode Utama
+5.1. Struktur Folder (ringkas)
+
+app/Models
+
+Obat.php → master data obat jantung.
+
+PeriodePermintaan.php → data permintaan bulanan.
+
+MonteCarlo.php → ringkasan distribusi Monte Carlo (1 baris per nilai permintaan).
+
+HasilError.php → error tiap prediksi.
+
+MetrikEvaluasi.php → rata-rata MAD, MSE, MAPE per obat & skenario.
+
+(opsional) HasilSimulasi.php, LogProses.php kalau kamu definisikan.
+
+app/Http/Controllers
+
+DataController.php
+
+Mengelola:
+
+Tabel harian (tb_permintaan_obat_harian)
+
+Tabel bulanan (tb_periode_permintaan)
+
+Fungsi utama:
+
+index() → menampilkan dataset harian & ringkasan bulanan.
+
+store() → simpan data harian manual & update akumulasi bulanan.
+
+processImport() → import Excel harian → simpan harian → bentuk ulang bulanan.
+
+clearAllData() → reset semua tabel terkait.
+
+downloadTemplate() → generate & kirim template Excel.
+
+MonteCarloController.php
+
+index() → halaman Monte Carlo.
+
+run() → Jalankan simulasi Monte Carlo:
+
+Ambil data bulanan.
+
+Pisah training vs aktual.
+
+Bangun distribusi frekuensi & probabilitas.
+
+Bentuk interval bilangan acak.
+
+Simulasi N kali, ambil rata-rata, kali periode prediksi.
+
+Simpan ke tb_monte_carlo dan tb_hasil_error, update tb_metrik_evaluasi.
+
+HasilController.php
+
+index() → halaman Hasil Error:
+
+Filter obat & skenario.
+
+Ambil metrik dari tb_metrik_evaluasi.
+
+Ambil list error dari tb_hasil_error.
+
+detailSimulasi() → detail Monte Carlo & error per obat & skenario.
+
+analisisKomparatif() → perbandingan antar skenario.
+
+generateReport() → data untuk laporan.
+
+TentangKamiController.php
+
+index() → halaman profil aplikasi.
+
+resources/views
+
+layouts/app.blade.php → layout utama (sidebar, header, dll).
+
+data-set.blade.php → halaman dataset utama.
+
+data/create.blade.php → form input harian.
+
+data/import.blade.php → form import Excel.
+
+monte-carlo/index.blade.php → halaman simulasi Monte Carlo.
+
+hasil/index.blade.php → halaman hasil error.
+
+(opsional) hasil/analisis.blade.php, hasil/laporan.blade.php.
+
+tentang-kami.blade.php → halaman profil aplikasi (yang baru).
+
+routes/web.php
+
+Route untuk:
+
+data.index, data.create, data.store, data.import.form, data.import.store, data.clear, dll.
+
+monte-carlo.index, monte-carlo.run.
+
+hasil.index.
+
+tentang-kami.
